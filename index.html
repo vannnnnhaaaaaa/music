@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CD playlist</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    
+    <div class="player">
+        <div class="main">
+            <div class="dashboard">
+                <header>
+                    <p style="color: rgb(204, 30, 59);" ><b>Now Playing:</b></p>
+                    <h3 style="font-size: 27px;">String 57th & 9th</h3>
+                </header>
+            </div>
+            <div class="cd">
+                <div class="cd_thum" style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')">
+                   
+                </div>
+            </div>
+            <ul class="listbtn ">
+                <li><i class="fas fa-redo-alt"></i></li>
+                <li><i class="fas fa-step-backward"></i></li>
+                <li><i class="fas fa-play-circle" style="font-size: 40px; color: rgb(209, 70, 93); "></i>
+                    <i class="fas fa-pause-circle"style=" font-size: 40px; color: rgb(209, 70, 93);"></i>
+                </li>
+
+                <li><i class="fas fa-step-forward"></i></li>
+                <li><i class="fas fa-random"></i></li>
+            </ul>
+            <input id = "progress" type="range" value="0" step="1" min="0" max ="100">
+            <audio id = "audio" src ="" ></audio>
+            
+        </div>
+    
+    
+     <div class="listsong">
+           
+    
+    </div>
+    
+
+    <script >
+       
+        
+        const $ = document.querySelector.bind(document)
+        const $$ = document.querySelectorAll.bind(document)
+        const heading = $('header h3') ;
+        const cdThumb = $('.cd_thum') ;
+        const audio = $('#audio');
+        const cd = $('.cd');
+       const playbtn = $('.fa-play-circle')     
+        const player = $('.player')
+        const pausebtn = $('.fa-pause-circle')
+        const progress = $('#progress')
+        const nextbtn = $('.fa-step-forward')
+        const app = {
+            currentIndex :0 ,
+            songs: [
+            {
+                name: '24h',
+                singer: "lyly",
+                path : './asset/mp3/24h.mp3'
+            },
+            {
+                name: 'Dòng thời gian',
+                singer: "lyly",
+                path : './asset/mp3/dongthoigian.mp3'
+            },
+            {
+                name: 'Người nào đó',
+                singer: "lyly",
+                path : './asset/mp3/nguoinaodo.mp3'
+            },
+            {
+                name: 'Những kẻ mộng mơ',
+                singer: "lyly",
+                path : './asset/mp3/nhungkemongmo.mp3'
+            },
+            {
+                name: 'Tận cùng của nỗi nhớ',
+                singer: "lyly",
+                path : './asset/mp3/tancungcuanoinho.mp3'
+            },
+            {
+                name: 'Như một giấc mơ',
+                singer: "lyly",
+                path : './asset/mp3/nhumotgiacmo.mp3'
+            }
+            ] ,
+           render: function render (){
+                const htmls = this.songs.map((song)=>{
+                    return `
+                    <div class="song">
+                        <div class="boxavatar">
+                            <div class="avatar"style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')"></div>
+                        </div>
+                        
+                        <div class="content">
+                            <h3 class="name">${song.name}</h3>
+                            <span class="singer">${song.singer}</span>
+                            <span><b>/</b></span>
+                            <span class="music_group">nhóm nhạc</span>
+                        </div>
+                        <div class="menu"><i class="fas fa-ellipsis-h"></i></div>
+                     </div>
+                    `
+                })
+
+              $('.listsong').innerHTML = htmls.join("");
+            },
+            defineProperties : function (){
+                Object.defineProperty(this,'currentsong',{
+                    get: function(){
+                        return this.songs[this.currentIndex]
+                    }
+                })
+            },
+
+            handleEvent: function () {
+                const _this =this
+                // hai hat ke tiep
+                nextbtn.onclick = function(){
+                    this.nextsong();
+                    audio.play();
+                    alert("ok")
+                }
+                // xu ly phong to thu nho cd
+                const cdWidth = cd.offsetWidth ;
+                const cm = $('.player');                         
+                cm.onscroll = function() {             
+                 const scrollTop = cm.scrollTop 
+                 const newcdWidth = cdWidth - (scrollTop) ;
+                 cd.style.width = newcdWidth >0? newcdWidth+'px' :0
+                 cd.style.opacity = newcdWidth/cdWidth 
+                };  
+               
+                // xu ly khi click play        
+                playbtn.onclick = function  (){
+                    
+                    audio.play();
+                     player.classList.add('playing')
+                     cd_thumAnimate.play()
+                   
+                }
+               
+                // xu ly dung
+                pausebtn.onclick = function () {
+                    audio.pause();
+                    player.classList.remove('playing')
+                    cd_thumAnimate.pause()
+                };
+
+                
+                // xu ly cd quay 
+                let cd_thumAnimate = cdThumb.animate ([
+                    {transform : 'rotate(360deg)'}
+                ],{
+                    duration:100000,
+                    iterations: Infinity
+                })
+               cd_thumAnimate.pause()
+                // xu ly tien do bai hat
+                audio.ontimeupdate = function (){
+                    if (audio.duration){
+                        const progressPercent = Math.floor(audio.currentTime/audio.duration*100) ;
+                        progress.value = progressPercent
+                    }
+                }
+                // su ly khi tua bai hat 
+                progress.onchange = function(e){            
+                    const seektime =  Math.floor(audio.duration*e.target.value/100);
+                    audio.currentTime =seektime
+                }
+                nextbtn.onclick = function (){
+                    _this.nextsong()
+                }
+
+            },
+
+            loadCurrentSong : function (){
+                heading.textContent= this.currentsong.name ;
+                audio.src = this.currentsong.path ;
+            },
+            nextsong : function(){
+                this.currentIndex++;
+                if (this.currentIndex>= this.songs.length){
+                   this.currentIndex =0
+                }
+                this.loadCurrentSong() ;
+                audio.play()
+            },
+            
+           
+            //
+
+            start : function start (){
+            this.defineProperties()
+            this.render()
+            this.loadCurrentSong()
+            this.handleEvent()
+           
+            }
+
+        }
+        app.start()
+    </script>
+</body>
+</html>
