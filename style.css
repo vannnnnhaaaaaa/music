@@ -59,7 +59,13 @@ input[type="range"]::-ms-thumb {
     cursor: pointer;
 }
 /* cd va btn cua list music */
+.fa-random.active  {
+    color: #ff4757;
+}
 
+.fa-redo-alt.active {
+    color: #ff4757;
+}
 .player{
       overflow-y: auto; 
     background-color: #e3e1e1;
@@ -120,6 +126,18 @@ header {
   
 }
 
+.song.active {
+    background-color: #e04c62;
+    opacity: 0.8;
+}
+
+.song.active h3, .song.active span {
+    color: white;
+}
+.song:active {
+    opacity: 0.6;
+}
+/*  */
 i{
     cursor: pointer;
 }

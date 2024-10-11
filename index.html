@@ -50,16 +50,23 @@
         
         const $ = document.querySelector.bind(document)
         const $$ = document.querySelectorAll.bind(document)
+
+
         const heading = $('header h3') ;
         const cdThumb = $('.cd_thum') ;
         const audio = $('#audio');
         const cd = $('.cd');
-       const playbtn = $('.fa-play-circle')     
+        const playbtn = $('.fa-play-circle')     
         const player = $('.player')
         const pausebtn = $('.fa-pause-circle')
         const progress = $('#progress')
         const nextbtn = $('.fa-step-forward')
+        const prebtn =  $('.fa-step-backward')
+        const randombtn = $(".fa-random")
+        const replaybtn = $(".fa-redo-alt")
+        const playlist = $('.listsong')
         const app = {
+            
             currentIndex :0 ,
             songs: [
             {
@@ -94,9 +101,9 @@
             }
             ] ,
            render: function render (){
-                const htmls = this.songs.map((song)=>{
+                const htmls = this.songs.map((song , index)=>{
                     return `
-                    <div class="song">
+                    <div class="song ${index === this.currentIndex?'active':''} " data-index="${index}">
                         <div class="boxavatar">
                             <div class="avatar"style="background-image: url('https://i.ytimg.com/vi/jTLhQf5KJSc/maxresdefault.jpg')"></div>
                         </div>
@@ -112,7 +119,7 @@
                     `
                 })
 
-              $('.listsong').innerHTML = htmls.join("");
+                playlist.innerHTML = htmls.join("");
             },
             defineProperties : function (){
                 Object.defineProperty(this,'currentsong',{
@@ -123,6 +130,8 @@
             },
 
             handleEvent: function () {
+                isreplay = false ;
+                israndom = false ;
                 const _this =this
                 // hai hat ke tiep
                 nextbtn.onclick = function(){
@@ -141,7 +150,7 @@
                 };  
                
                 // xu ly khi click play        
-                playbtn.onclick = function  (){
+                playbtn.onclick = function playAudio (){
                     
                     audio.play();
                      player.classList.add('playing')
@@ -177,11 +186,75 @@
                     const seektime =  Math.floor(audio.duration*e.target.value/100);
                     audio.currentTime =seektime
                 }
-                nextbtn.onclick = function (){
-                    _this.nextsong()
+                // xử lý khi nhan nut next
+                nextbtn.onclick = function nextsong (){
+                    if (israndom){
+                        _this.playrandomsong();
+                    }else{
+                        _this.nextsong()
+                    }
+                        _this.render();
+                        if (_this.currentIndex==0){
+                      
+                            _this.scrollToActiveSong2();
+                        }else{
+                            _this.scrollToActiveSong1 ();
+                        }
+                        
+                }
+                // xử lý khi nhấn nút pre
+                prebtn.onclick = function (){
+                    if (israndom){
+                        _this.playrandomsong();
+                    }else{
+                    _this.presong()
+                    }
+                    _this.render()
+                    if (_this.currentIndex==0){
+                      
+                      _this.scrollToActiveSong2();
+                  }else{
+                      _this.scrollToActiveSong1 ();
+                  }
+                }
+                // xu ly khi bat random
+                randombtn.onclick = function (){
+                    israndom = !israndom;
+                    randombtn.classList.toggle('active' ,_this.israndom )
+                }
+                // xu ly khi bat replay
+                replaybtn.onclick = function (){
+                    isreplay = !isreplay ;
+                    replaybtn.classList.toggle('active',isreplay);
+                }
+                // xu ly khi ket thuc bai hat
+                audio.onended = function(){
+                    if(isreplay){
+                        audio.play()
+                    }else{
+                        nextbtn.click();
+                    }
                 }
 
+                //lang nghe hang vi click vao playlish 
+                playlist.onclick =  function(e){
+                  const songNode = e.target.closest('.song:not(.active)')
+                    if (songNode||e.target.closest('.menu')){
+                        if (songNode){
+                            _this.currentIndex = Number(songNode.dataset.index ) 
+                            _this.loadCurrentSong()
+                            _this.render()
+                            audio.play()
+                            playbtn.click()
+                        }
+                    }
+                    
+                }
+
+                
+
             },
+
 
             loadCurrentSong : function (){
                 heading.textContent= this.currentsong.name ;
@@ -193,11 +266,70 @@
                    this.currentIndex =0
                 }
                 this.loadCurrentSong() ;
-                audio.play()
+                if(getComputedStyle(pausebtn).display !== 'none' ){
+                    audio.play()
+                }
+             
+              
+            },
+            presong : function (){
+                
+                if (this.currentIndex==0 ){
+                    this.currentIndex = this.songs.length-1;
+                }else{
+                    this.currentIndex -- ;
+                }
+                
+               
+                this.loadCurrentSong() ;
+                if(getComputedStyle(pausebtn).display !== 'none' ){
+                    audio.play()
+                }
+            }
+            ,
+            playrandomsong : function (){
+                let newIndex ;
+                do {
+                    newIndex = Math.floor(Math.random()*this.songs.length);
+                }while(newIndex=== this.currentIndex);
+
+                this.currentIndex = newIndex ;
+                this.loadCurrentSong();
+                if(getComputedStyle(pausebtn).display !== 'none' ){
+                    audio.play()
+                }
             },
             
-           
-            //
+            replay : function (){
+                if (isreplay&& progress.value==99){
+                    progress.value = 0;
+                }
+            },
+            
+            
+            scrollToActiveSong1: function() {
+                setTimeout(() => {
+                    const activeSong = $('.song.active'); // Lấy phần tử DOM
+                    if (activeSong) {
+                        activeSong.scrollIntoView({
+                            behavior: 'smooth', // Sửa lỗi chính tả
+                            block: 'nearest'
+                        });
+                    }
+                }, 200);
+                
+},
+            scrollToActiveSong2: function() {
+                setTimeout(() => {
+                    const activeSong =  document.querySelector('.song.active'); // Lấy phần tử DOM
+                    if (activeSong) {
+                        activeSong.scrollIntoView({
+                            behavior: 'smooth', // Sửa lỗi chính tả
+                            block: 'end'
+                        });
+                    }
+                }, 200);
+            },
 
             start : function start (){
             this.defineProperties()
